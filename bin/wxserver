@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+var WxServer = require('../dist/WxServer.js').WxServer;
+
+new WxServer().listen(8080);

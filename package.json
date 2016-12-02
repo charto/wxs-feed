@@ -1,0 +1,37 @@
+{
+  "name": "wxs-feed",
+  "version": "0.0.1",
+  "description": "WFS / WMS server",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "bin": {
+    "wxserver": "bin/wxserver"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "tslint": "tslint",
+    "prepublish": "tsc -p src"
+  },
+  "author": "Juha Järvi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/charto/wxs-feed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/charto/wxs-feed/issues"
+  },
+  "homepage": "https://github.com/charto/wxs-feed#readme",
+  "keywords": [
+    "gis",
+    "ogc",
+    "wfs",
+    "wms"
+  ],
+  "devDependencies": {
+    "typescript": "^2.0.10"
+  },
+  "dependencies": {
+    "@types/node": "0.0.2"
+  }
+}
