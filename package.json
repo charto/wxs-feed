@@ -10,6 +10,7 @@
   "scripts": {
     "tsc": "tsc",
     "tslint": "tslint",
+    "start": "node bin/wxserver",
     "prepublish": "tsc -p src"
   },
   "author": "Juha Järvi",
@@ -29,9 +30,11 @@
     "wms"
   ],
   "devDependencies": {
-    "typescript": "^2.0.10"
+    "typescript": "^2.3.3"
   },
   "dependencies": {
-    "@types/node": "0.0.2"
+    "@types/bluebird": "^3.5.4",
+    "@types/node": "^7.0.22",
+    "bluebird": "^3.5.0"
   }
 }

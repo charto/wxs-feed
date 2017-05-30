@@ -1,20 +1,22 @@
-// This file is part of wxs-feed, copyright (c) 2016 BusFaster Ltd.
+// This file is part of wxs-feed, copyright (c) 2016-2017 BusFaster Ltd.
 // Released under the MIT license, see LICENSE.
 
 import * as http from 'http';
 
-import {handleWxS} from './handleWxS';
+import * as Promise from 'bluebird';
+
+import { WxHandler, WxHandlerOptions } from './WxHandler';
 
 export class WxServer {
-	constructor(options?: any) {
-		if(!options) options = {};
-		this.options = options;
+	constructor(public options: WxHandlerOptions = {}) {
+		const handler = new WxHandler(options);
 
+		this.handler = handler;
 		this.server = http.createServer(
 			(
 				req: http.IncomingMessage,
 				res: http.ServerResponse
-			) => handleWxS(req, res, options)
+			) => handler.tryHandle(req, res)
 		);
 	}
 
@@ -26,6 +28,6 @@ export class WxServer {
 		));
 	}
 
+	handler: WxHandler;
 	server: http.Server;
-	options: any;
 }
