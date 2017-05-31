@@ -8,13 +8,13 @@ import { WxError, WxErrorCode } from '../WxError';
 
 export interface WfsDescribeFeatureType {
 	namespace: string;
-	name: string;
+	name?: string;
 	imports?: { namespace: string, location: string }[];
-	fields?: { name: string, type: string, optional: boolean }[];
+	fields?: { name: string, type: string, optional?: boolean }[];
 }
 
 export function wfsDescribeFeatureType(state: WxState) {
-	const handler = state.options.describeFeatureType;
+	const handler = state.options.wfs && state.options.wfs.describeFeatureType;
 
 	if(!handler) {
 		throw(new WxError(WxErrorCode.unsupportedOperation, 'DescribeFeatureType'));
@@ -26,11 +26,10 @@ export function wfsDescribeFeatureType(state: WxState) {
 		throw(new WxError(WxErrorCode.missingParameter, 'typeName'));
 	}
 
-	const handled = Promise.try(handler(state, typeName)).then((spec: WfsDescribeFeatureType) => {
-		let output = '';
+	const handled = Promise.try(() => handler(state, typeName)).then((spec: WfsDescribeFeatureType) => {
 		let target: string | undefined;
 
-		output = [
+		const output = [
 			'<?xml version="1.0" encoding="UTF-8"?>',
 			'<xsd:schema',
 			' xmlns:xsd="http://www.w3.org/2001/XMLSchema"',
@@ -38,7 +37,7 @@ export function wfsDescribeFeatureType(state: WxState) {
 			' elementFormDefault="qualified"',
 			' version="1.0"',
 			'>',
-			'<xs:import',
+			'<xsd:import',
 			' namespace="http://www.opengis.net/gml"',
 			' schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"',
 			'/>',
@@ -50,7 +49,7 @@ export function wfsDescribeFeatureType(state: WxState) {
 						' schemaLocation="' + importSpec.location + '"',
 						'/>'
 					] : [
-						'<xs:import',
+						'<xsd:import',
 						' namespace="' + importSpec.namespace + '"',
 						' schemaLocation="' + importSpec.location + '"',
 						'/>',
@@ -58,29 +57,29 @@ export function wfsDescribeFeatureType(state: WxState) {
 				).join('')
 			).join(''),
 
-			!spec.fields ? '' : [
-				'<xs:complexType name="FeatureType">',
-				'<xs:complexContent>',
-				'<xs:extension base="gml:AbstractFeatureType">',
-				'<xs:sequence>',
+			!spec.fields || !spec.name ? '' : [
+				'<xsd:complexType name="ChartoFeatureType">',
+				'<xsd:complexContent>',
+				'<xsd:extension base="gml:AbstractFeatureType">',
+				'<xsd:sequence>',
 				spec.fields.map(
 					(fieldSpec) => [
-						'<xs:element',
-						fieldSpec.optional ? [
-							' maxOccurs="1"',
-							' minOccurs="0"',
-							' nillable="true"'
-						].join('') : '',
+						'<xsd:element',
 						' name="', fieldSpec.name, '"',
 						' type="', fieldSpec.type, '"',
+						fieldSpec.optional ? [
+							' minOccurs="0"',
+							' maxOccurs="1"',
+							' nillable="true"'
+						].join('') : '',
 						'/>'
 					].join('')
 				).join(''),
-				'</xs:sequence>',
-				'</xs:extension>',
-				'</xs:complexContent>',
-				'</xs:complexType>',
-				'<xs:element name="' + spec.name + '" substitutionGroup="gml:_Feature" type="FeatureType"/>'
+				'</xsd:sequence>',
+				'</xsd:extension>',
+				'</xsd:complexContent>',
+				'</xsd:complexType>',
+				'<xsd:element name="' + spec.name + '" substitutionGroup="gml:_Feature" type="ChartoFeatureType"/>'
 			].join(''),
 
 			'</xsd:schema>'

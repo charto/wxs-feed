@@ -7,11 +7,12 @@ import * as http from 'http';
 import * as Promise from 'bluebird';
 import * as cxml from 'cxml2';
 
-import { wfsDescribeFeatureType } from './wfs/describeFeatureType';
-import { wfsGetCapabilities } from './wfs/getCapabilities';
-import { wfsGetFeature } from './wfs/getFeature';
+import { wfsDescribeFeatureType, WfsDescribeFeatureType } from './wfs/describeFeatureType';
+import { wfsGetCapabilities, WfsGetCapabilities } from './wfs/getCapabilities';
+import { wfsGetFeature, WfsGetFeature } from './wfs/getFeature';
 
-import { wmsGetCapabilities } from './wms/getCapabilities';
+import { wmsGetCapabilities, WmsGetCapabilities } from './wms/getCapabilities';
+import { wmsGetMap, WmsGetMap } from './wms/getMap';
 
 import { parseQuery, getRawBody } from './parseQuery';
 import { WxError, WxErrorCode } from './WxError';
@@ -24,9 +25,18 @@ export interface WxHandlerOptions {
 	  * Any truthy return value allows parsing the request and will be passed
 	  * to further authentication steps. */
 	authorizeUser?: (state: WxState) => any;
-//	getFeature?: (options: { typeName: string, bbox?: BBox | null, xml?: wfs11.QueryType }) => any;
-	describeFeatureType?: (state: WxState, typeName: string) => any;
 	encoding?: string;
+	wfs?: {
+		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
+		getCapabilities?: (state: WxState) => WfsGetCapabilities,
+		describeFeatureType?: (state: WxState, typeName: string) => WfsDescribeFeatureType,
+		getFeature?: (state: WxState) => WfsGetFeature
+	};
+	wms?: {
+		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
+		getCapabilities?: (state: WxState) => WmsGetCapabilities,
+		getMap?: (state: WxState) => WmsGetMap
+	};
 }
 
 export interface WxState {
@@ -34,6 +44,7 @@ export interface WxState {
 	res: http.ServerResponse;
 	options: WxHandlerOptions;
 	handler: WxHandler;
+	paramStart?: number;
 	paramTbl?: { [key: string]: string };
 	request?: string;
 	service?: string;
@@ -131,6 +142,7 @@ export class WxHandler {
 			paramTbl = {};
 		}
 
+		state.paramStart = paramStart;
 		state.paramTbl = paramTbl;
 
 		// SECURITY: Validate service.
@@ -190,7 +202,7 @@ export class WxHandler {
 				throw(new WxError(WxErrorCode.missingParameter, 'request'));
 			}
 
-			state.res.end('');
+			return(handler(state));
 		}));
 	}
 
