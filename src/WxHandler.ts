@@ -9,13 +9,15 @@ import * as cxml from 'cxml2';
 
 import { wfsDescribeFeatureType, WfsDescribeFeatureType } from './wfs/describeFeatureType';
 import { wfsGetCapabilities, WfsGetCapabilities } from './wfs/getCapabilities';
-import { wfsGetFeature, WfsGetFeature } from './wfs/getFeature';
+import { wfsGetFeature, WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeature';
 
 import { wmsGetCapabilities, WmsGetCapabilities } from './wms/getCapabilities';
 import { wmsGetMap, WmsGetMap } from './wms/getMap';
 
 import { parseQuery, getRawBody } from './parseQuery';
 import { WxError, WxErrorCode } from './WxError';
+
+import * as schema from './schema';
 
 /** Query URL total maximum encoded length, for safety. */
 const maxQueryLength = 65535;
@@ -25,12 +27,16 @@ export interface WxHandlerOptions {
 	  * Any truthy return value allows parsing the request and will be passed
 	  * to further authentication steps. */
 	authorizeUser?: (state: WxState) => any;
+	/** Default maxFeatures parameter. */
+	defaultFeatures?: number;
+	/** Maximum allowed maxFeatures parameter. */
+	maxFeatures?: number;
 	encoding?: string;
 	wfs?: {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
 		getCapabilities?: (state: WxState) => WfsGetCapabilities,
 		describeFeatureType?: (state: WxState, typeName: string) => WfsDescribeFeatureType,
-		getFeature?: (state: WxState) => WfsGetFeature
+		getFeature?: (state: WxState, spec: WfsGetFeatureSpec) => WfsGetFeature
 	};
 	wms?: {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
@@ -49,7 +55,10 @@ export interface WxState {
 	request?: string;
 	service?: string;
 	authorization?: any;
+	xml?: any;
 }
+
+const wfsQueryBuilder = new cxml.Builder(schema.wfs);
 
 export class WxHandler {
 
@@ -115,15 +124,6 @@ export class WxHandler {
 		}
 
 		let paramStart = reqUrl.indexOf('?');
-		const endpointStart = reqUrl.lastIndexOf('/', paramStart) + 1;
-
-		// SECURITY: Strip evil characters to avoid injection attacks.
-		const endpoint = decodeURIComponent(
-			reqUrl.substr(endpointStart, paramStart - endpointStart)
-		).replace(/[^A-Za-z]/g, '?');
-
-		// TODO: Maybe check the endpoint.
-
 		let paramTbl: { [ key: string ]: string } | undefined;
 
 		// Parse query string.
@@ -131,10 +131,13 @@ export class WxHandler {
 			// SECURITY: drop unknown parameters,
 			// and dangerous characters from most parameters.
 			paramTbl = parseQuery(reqUrl, paramStart + 1, {
+				bbox: true,
 				filter: false,
+				maxfeatures: true,
 				outputformat: true,
 				request: true,
 				service: true,
+				srsname: true,
 				typename: true
 			});
 		} else {
@@ -144,6 +147,15 @@ export class WxHandler {
 
 		state.paramStart = paramStart;
 		state.paramTbl = paramTbl;
+
+		const endpointStart = reqUrl.lastIndexOf('/', paramStart) + 1;
+
+		// SECURITY: Strip evil characters to avoid injection attacks.
+		const endpoint = decodeURIComponent(
+			reqUrl.substr(endpointStart, paramStart - endpointStart)
+		).replace(/[^A-Za-z]/g, '?');
+
+		// TODO: Maybe check the endpoint.
 
 		// SECURITY: Validate service.
 		const service = (paramTbl['service'] || endpoint).toLowerCase();
@@ -181,26 +193,46 @@ export class WxHandler {
 		// SECURITY: Avoid handling unauthorized requests.
 		const authorized = !options.authorizeUser || options.authorizeUser(state);
 
-		const bodyParsed = Promise.resolve(authorized).then((auth: any) => {
+		const bodyParsed = Promise.resolve(authorized).then<any>((auth: any) => {
 			// SECURITY: Only parse authorized POST requests.
 			if(!auth) throw(new WxError(403));
 
 			state.authorization = auth;
 
 			if(state.req.method == 'POST') {
-				const stream = getRawBody(state.req);
-				if(!stream) throw(new WxError(415));
+				return(new Promise((resolve, reject) => {
+					const stream = getRawBody(state.req);
+					if(!stream) throw(new WxError(415));
 
-				const parser = this.parserConfig.createParser();
-				stream.pipe(parser);
-				// return(xmlParser.parse(getRawBody(req), wfs11.document) as any);
+					const parser = this.parserConfig.createParser();
+					wfsQueryBuilder.build(parser, (doc: any) => {
+						resolve(doc);
+					});
+
+					stream.pipe(parser);
+				}));
 			} else return(null);
 		});
 
 		return(bodyParsed.then((body: any) => {
-			if(!request && !body) {
-				throw(new WxError(WxErrorCode.missingParameter, 'request'));
+			if(!request) {
+				const keys = body && Object.keys(body);
+				if(!keys || keys.length < 1) {
+					throw(new WxError(WxErrorCode.missingParameter, 'request'));
+				}
+
+				// SECURITY: Validate request type.
+				request = keys[0].toLowerCase();
+				handler = handlerTbl[request];
+
+				if(!handler) {
+					throw(new WxError(WxErrorCode.invalidParameter, 'request', request));
+				}
+
+				state.request = request;
 			}
+
+			state.xml = body;
 
 			return(handler(state));
 		}));

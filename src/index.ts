@@ -6,7 +6,7 @@ export { WxServer } from './WxServer';
 
 export { WfsGetCapabilities } from './wfs/getCapabilities';
 export { WfsDescribeFeatureType } from './wfs/describeFeatureType';
-export { WfsGetFeature } from './wfs/getFeature';
+export { WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeature';
 
 export { WmsGetCapabilities } from './wms/getCapabilities';
 export { WmsGetMap } from './wms/getMap';

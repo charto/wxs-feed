@@ -50,7 +50,7 @@ export function parseQuery(query: string, pos: number, strictTbl?: { [ key: stri
 
 				if(strictFlag || strictFlag === false || strictFlag === 0) {
 					val = decodeURIComponent(query.substr(eq, delim - eq - 1));
-					if(strictFlag) val = val.replace(/[^-+.:/_ 0-9A-Za-z]/g, '?');
+					if(strictFlag) val = val.replace(/[^-+,.:/_# 0-9A-Za-z]/g, '?');
 					paramTbl[key] = val;
 				}
 			}
