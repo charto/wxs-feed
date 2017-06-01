@@ -22,6 +22,8 @@ const operationErrorNameTbl: { [ code: number /* WxErrorCode */ ]: string } = [
 
 export class WxError extends Error {
 	constructor(code: WxErrorCode | number, locator?: string | null, message?: string) {
+		if(message) message = message.replace(/[^-+.:/_ 0-9A-Za-z]/g, '?');
+
 		switch(code) {
 			case WxErrorCode.unsupportedOperation:
 
