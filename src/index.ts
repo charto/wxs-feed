@@ -4,6 +4,8 @@
 export { WxHandler, WxState } from './WxHandler';
 export { WxServer } from './WxServer';
 
+export { WxError, WxErrorCode } from './WxError';
+
 export { WfsGetCapabilities } from './wfs/getCapabilities';
 export { WfsDescribeFeatureType } from './wfs/describeFeatureType';
 export { WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeature';
