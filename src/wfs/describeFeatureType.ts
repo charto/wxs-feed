@@ -26,8 +26,10 @@ export function wfsDescribeFeatureType(state: WxState) {
 		throw(new WxError(WxErrorCode.missingParameter, 'typeName'));
 	}
 
-	const handled = Promise.try(() => handler(state, typeName)).then((spec: WfsDescribeFeatureType) => {
-		let target: string | undefined;
+	const handled = Promise.try(() => handler(state, typeName)).then((spec: WfsDescribeFeatureType | null) => {
+		if(!spec) {
+			throw(new WxError(WxErrorCode.invalidParameter, 'typeName', typeName));
+		}
 
 		const output = [
 			'<?xml version="1.0" encoding="UTF-8"?>',

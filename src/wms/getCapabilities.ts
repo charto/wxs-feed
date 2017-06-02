@@ -12,12 +12,16 @@ export interface WmsLayer {
 	srs?: any;
 }
 
+export interface SrsSpec {
+	name: string;
+	bbox: { n: number, e: number, s: number, w: number }
+}
+
 export interface WmsGetCapabilities {
 	name?: string;
 	title?: string;
 	endpoint?: string;
-	srs?: string[];
-	bbox84?: { n: number, e: number, s: number, w: number },
+	srs?: SrsSpec[];
 	layers?: WmsLayer[];
 }
 
@@ -31,7 +35,6 @@ export function wmsGetCapabilities(state: WxState) {
 	const handled = Promise.try(() => handler(state)).then((spec: WmsGetCapabilities) => {
 		let target: string | undefined;
 		let endpoint = spec.endpoint;
-		const bbox = spec.bbox84;
 
 		if(!endpoint) {
 			endpoint = [
@@ -76,13 +79,24 @@ export function wmsGetCapabilities(state: WxState) {
 			'<Layer>',
 			!spec.title ? '' : '<Title>' + spec.title + '</Title>',
 			!spec.srs ? '' : spec.srs.map(
-				(srs: string) => '<SRS>' + srs + '</SRS>'
+				(srs: SrsSpec) => '<SRS>' + srs.name + '</SRS>'
 			).join(''),
 			!spec.layers ? '' : spec.layers.map(
 				(layer: WmsLayer) => [
 					'<Layer>',
 					'<Name>', layer.name, '</Name>',
 					'<Title>', layer.title || layer.name, '</Title>',
+					!spec.srs ? '' : spec.srs.map(
+						(srs: SrsSpec) => !srs.bbox ? '' : [
+							'<BoundingBox',
+							' SRS="', srs.name, '"',
+							' minx="', srs.bbox.w, '"',
+							' miny="', srs.bbox.s, '"',
+							' maxx="', srs.bbox.e, '"',
+							' maxy="', srs.bbox.n, '"',
+							'/>'
+						].join('')
+					).join(''),
 					'</Layer>'
 				].join('')
 			).join(''),

@@ -21,7 +21,7 @@ export interface WfsGetCapabilities {
 	title?: string;
 	endpoint?: string;
 	srs?: string;
-	bbox84?: { n: number, e: number, s: number, w: number },
+	bbox4326?: { n: number, e: number, s: number, w: number },
 	namespaces?: NamespaceRef[];
 	layers?: WfsLayer[];
 }
@@ -33,10 +33,13 @@ export function wfsGetCapabilities(state: WxState) {
 		throw(new WxError(WxErrorCode.unsupportedOperation, 'GetCapabilities'));
 	}
 
-	const handled = Promise.try(() => handler(state)).then((spec: WfsGetCapabilities) => {
-		let target: string | undefined;
+	const handled = Promise.try(() => handler(state)).then((spec: WfsGetCapabilities | null) => {
+		if(!spec) {
+			throw(new WxError(WxErrorCode.unsupportedOperation, 'GetCapabilities'));
+		}
+
 		let endpoint = spec.endpoint;
-		const bbox = spec.bbox84;
+		const bbox = spec.bbox4326;
 
 		if(!endpoint) {
 			endpoint = [
