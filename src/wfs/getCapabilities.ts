@@ -12,11 +12,17 @@ export interface WfsLayer {
 	srs?: any;
 }
 
+export interface NamespaceRef {
+	prefix: string;
+	uri: string;
+}
+
 export interface WfsGetCapabilities {
 	title?: string;
 	endpoint?: string;
 	srs?: string;
 	bbox84?: { n: number, e: number, s: number, w: number },
+	namespaces?: NamespaceRef[];
 	layers?: WfsLayer[];
 }
 
@@ -49,6 +55,9 @@ export function wfsGetCapabilities(state: WxState) {
 			' xmlns:ogc="http://www.opengis.net/ogc"',
 			' xmlns:xlink="http://www.w3.org/1999/xlink"',
 			' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+			(spec.namespaces || []).map(
+				(ns: NamespaceRef) => ' xmlns:' + ns.prefix + '="' + ns.uri + '"'
+			).join(''),
 			' xsi:schemaLocation="http://www.opengis.net/wfs"',
 			' version="1.1.0"',
 			'>',
