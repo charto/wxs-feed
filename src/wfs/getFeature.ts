@@ -4,6 +4,7 @@
 import * as Promise from 'bluebird';
 import * as cxml from 'cxml2';
 
+import { safeParameter } from '../parseQuery';
 import { WxState } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
 import { SRS } from '../types/SRS';
@@ -15,6 +16,7 @@ export type BBox = [ number, number, number, number, SRS ];
 
 export interface WfsGetFeatureSpec {
 	query: any;
+	typeName: string;
 	srs: SRS;
 	bbox: BBox | null;
 	maxFeatures: number;
@@ -75,8 +77,9 @@ export function wfsGetFeature(state: WxState) {
 			GetFeature: {
 				maxFeatures: paramTbl['maxfeatures'],
 				Query: [{
+					Filter: filter,
 					srsName: paramTbl['srsname'],
-					Filter: filter
+					typeName: paramTbl['typename']
 				}]
 			}
 		};
@@ -132,12 +135,14 @@ export function wfsGetFeature(state: WxState) {
 				}
 			}
 
+			const typeName = safeParameter(query.typeName);
+
 			srs = SRS.parse(query.srsName || 'EPSG:4326');
 			if(!srs) {
 				throw(new WxError(WxErrorCode.invalidParameter, 'srsName', envelope.srsName));
 			}
 
-			return(handler(state, { query, srs, bbox, maxFeatures }));
+			return(handler(state, { query, typeName, srs, bbox, maxFeatures }));
 		});
 
 		return(allHandled);

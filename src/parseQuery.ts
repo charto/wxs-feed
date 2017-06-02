@@ -23,6 +23,10 @@ export function getRawBody(req: http.IncomingMessage) {
 	return(contentDecoder(req as any as NodeJS.ReadableStream));
 }
 
+export function safeParameter(val: string) {
+	return(val.replace(/[^-+,.:/_# 0-9A-Za-z]/g, '?').substr(0, 255));
+}
+
 /** querystring.parse equivalent that outputs keys in lowercase.
   * @param query Original query string.
   * @param pos Index of one past the ? character signaling start of parameters.
@@ -50,7 +54,7 @@ export function parseQuery(query: string, pos: number, strictTbl?: { [ key: stri
 
 				if(strictFlag || strictFlag === false || (strictFlag as any) === 0) {
 					val = decodeURIComponent(query.substr(eq, delim - eq - 1));
-					if(strictFlag) val = val.replace(/[^-+,.:/_# 0-9A-Za-z]/g, '?');
+					if(strictFlag) val = safeParameter(val);
 					paramTbl[key] = val;
 				}
 			}
