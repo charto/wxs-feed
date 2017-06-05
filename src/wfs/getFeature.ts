@@ -12,7 +12,7 @@ import { RExp } from '../types/RExp';
 
 import * as schema from '../schema';
 
-export type BBox = [ number, number, number, number, SRS ];
+export type BBox = [ number, number, number, number, number ];
 
 export interface WfsGetFeatureSpec {
 	query: any;
@@ -128,9 +128,9 @@ export function wfsGetFeature(state: WxState) {
 					}
 
 					if(srs.oldXY) {
-						bbox = [ +sw[0], +sw[1], +ne[0], +ne[1], srs ];
+						bbox = [ +sw[0], +sw[1], +ne[0], +ne[1], srs.epsg ];
 					} else {
-						bbox = [ +sw[1], +sw[0], +ne[1], +ne[0], srs ];
+						bbox = [ +sw[1], +sw[0], +ne[1], +ne[0], srs.epsg ];
 					}
 				}
 			}
