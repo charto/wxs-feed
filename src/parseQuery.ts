@@ -15,7 +15,7 @@ const contentDecoderTbl: { [encoding: string]: (req: NodeJS.ReadableStream) => N
 /** Get request body as a decompressed stream. */
 
 export function getRawBody(req: http.IncomingMessage) {
-	const contentEncoding = (req.headers['content-encoding'] || 'identity').toLowerCase();
+	const contentEncoding = (req.headers['content-encoding'] as string || 'identity').toLowerCase();
 	const contentDecoder = contentDecoderTbl[contentEncoding];
 
 	if(!contentDecoder) return(null);
