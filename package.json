@@ -1,6 +1,6 @@
 {
   "name": "wxs-feed",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "WFS / WMS server",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -30,7 +30,7 @@
     "wms"
   ],
   "devDependencies": {
-    "typescript": "^2.3.3"
+    "typescript": "^2.3.4"
   },
   "dependencies": {
     "@types/bluebird": "^3.5.4",

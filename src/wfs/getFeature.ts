@@ -23,6 +23,7 @@ export interface WfsGetFeatureSpec {
 }
 
 export interface WfsGetFeature {
+	numberOfFeatures?: number;
 }
 
 const wfsFilterBuilder = new cxml.Builder(schema.wfs, schema.wfs.Filter);
@@ -147,7 +148,7 @@ export function wfsGetFeature(state: WxState) {
 
 		return(allHandled);
 	}).then((specList: WfsGetFeature[]) => {
-		state.handler.sendString(state, 200, 'text/plain', '');
+		//state.handler.sendString(state, 200, 'text/plain', '');
 	});
 
 	return(handled);
