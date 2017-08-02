@@ -8,4 +8,4 @@ License
 
 [The MIT License](https://raw.githubusercontent.com/charto/wxs-feed/master/LICENSE)
 
-Copyright (c) 2016 BusFaster Ltd
+Copyright (c) 2016-2017 BusFaster Ltd
