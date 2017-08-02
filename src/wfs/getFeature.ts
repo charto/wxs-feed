@@ -2,7 +2,7 @@
 // Released under the MIT license, see LICENSE.
 
 import * as Promise from 'bluebird';
-import * as cxml from 'cxml2';
+import * as cxml from 'cxml';
 
 import { safeParameter } from '../parseQuery';
 import { WxState } from '../WxHandler';
@@ -10,7 +10,7 @@ import { WxError, WxErrorCode } from '../WxError';
 import { SRS } from '../types/SRS';
 import { RExp } from '../types/RExp';
 
-import * as schema from '../schema';
+import schema = require('../../schema.json');
 
 export type BBox = [ number, number, number, number, number ];
 
@@ -26,21 +26,22 @@ export interface WfsGetFeature {
 	numberOfFeatures?: number;
 }
 
-const wfsFilterBuilder = new cxml.Builder(schema.wfs, schema.wfs.Filter);
-
 function parseFilter(state: WxState) {
 	const paramTbl = state.paramTbl || {};
 
 	return(new Promise<any>((resolve, reject) => {
 		if(paramTbl['filter']) {
-			const parser = state.handler.parserConfig.createParser();
-			parser.getConfig().bindNamespace(new cxml.Namespace('ogc', 'http://www.opengis.net/ogc'), 'xmlns');
-			wfsFilterBuilder.build(parser, (doc: any) => {
+			const xmlParser = state.handler.xmlConfig.createParser();
+			const xmlBuilder = state.handler.xmlBuilder;
+
+			xmlParser.getConfig().bindNamespace(new cxml.Namespace('ogc', 'http://www.opengis.net/ogc'), 'xmlns', xmlParser);
+
+			xmlBuilder.build(xmlParser, 'http://www.opengis.net/wfs', (doc: any) => {
 				resolve(doc);
 			});
 
-			parser.write(paramTbl['filter']);
-			parser.end();
+			xmlParser.write(paramTbl['filter']);
+			xmlParser.end();
 		} else if(paramTbl['bbox']) {
 			let parts = paramTbl['bbox'].split(',');
 
@@ -119,10 +120,25 @@ export function wfsGetFeature(state: WxState) {
 			bbox = null;
 
 			if(envelope) {
-				const sw = envelope.lowerCorner;
-				const ne = envelope.upperCorner;
+				// TODO: make these const after integrating cxsd.
+				let sw = envelope.lowerCorner;
+				let ne = envelope.upperCorner;
 
 				if(sw && ne) {
+					// TODO: remove the array tweak after integrating cxsd.
+
+					if(typeof(sw) == 'string') {
+						sw = sw.split(' ');
+					} else if(!(sw instanceof Array)) {
+						sw = null;
+					}
+
+					if(typeof(ne) == 'string') {
+						ne = ne.split(' ');
+					} else if(!(ne instanceof Array)) {
+						ne = null;
+					}
+
 					srs = SRS.parse(envelope.srsName || 'EPSG:4326');
 					if(!srs) {
 						throw(new WxError(WxErrorCode.invalidParameter, 'srsName', envelope.srsName));

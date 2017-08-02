@@ -1,0 +1,72 @@
+{
+
+"wfs110": [ "wfs", "http://www.opengis.net/wfs", {
+	"document": [
+		"WFS_Capabilities",
+		"GetFeature"
+	],
+	"WFS_Capabilities": [
+		"FeatureTypeList"
+	],
+	"FeatureTypeList": [
+		"FeatureType[]?"
+	],
+	"FeatureType": [{
+		"Name": "xs:string",
+		"Title": "xs:string"
+	}],
+	"GetFeature": [
+		"$maxFeatures",
+		"$service",
+		"Query[]"
+	],
+	"Query": [
+		"$srsName",
+		"$typeName",
+		"Filter"
+	],
+	"Filter": [
+		"BBOX",
+		"Intersects"
+	],
+	"BBOX": [
+		"Envelope"
+	],
+	"Intersects": [
+		"Envelope"
+	],
+	"Envelope": [
+		"$srsName",
+		"$typeName",
+		{
+			"lowerCorner": "xs:string[]",
+			"upperCorner": "xs:string[]"
+		}
+	]
+}],
+
+"ows": [ "ows", "http://www.opengis.net/ows", {
+	"OperationsMetadata": [
+		"Operation"
+	],
+	"Operation": [
+		"$name",
+		"DCP"
+	],
+	"DCP": [
+		"HTTP"
+	],
+	"HTTP": [{
+		"Get": "HttpSpec",
+		"Post": "HttpSpec"
+	}],
+	"HttpSpec": [
+		"xlink:$href"
+	]
+}],
+
+"xlink": [ "xlink", "http://www.w3.org/1999/xlink", {
+	"$href": "xs:string"
+}]
+
+}

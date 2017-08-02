@@ -5,7 +5,7 @@ import * as util from 'util';
 import * as http from 'http';
 
 import * as Promise from 'bluebird';
-import * as cxml from 'cxml2';
+import * as cxml from 'cxml';
 
 import { wfsDescribeFeatureType, WfsDescribeFeatureType } from './wfs/describeFeatureType';
 import { wfsGetCapabilities, WfsGetCapabilities } from './wfs/getCapabilities';
@@ -17,7 +17,7 @@ import { wmsGetMap, WmsGetMap } from './wms/getMap';
 import { parseQuery, getRawBody } from './parseQuery';
 import { WxError, WxErrorCode } from './WxError';
 
-import * as schema from './schema';
+import schema = require('../schema.json');
 
 /** Query URL total maximum encoded length, for safety. */
 const maxQueryLength = 65535;
@@ -58,16 +58,16 @@ export interface WxState {
 	xml?: any;
 }
 
-const wfsQueryBuilder = new cxml.Builder(schema.wfs);
-
 export class WxHandler {
 
 	constructor(public options: WxHandlerOptions) {
-		const config = new cxml.ParserConfig();
-		config.bindNamespace(cxml.anonymous);
-		config.addNamespace(cxml.xml1998);
+		// TODO: remove the parseUnknown flag after integrating cxsd.
+		this.xmlConfig = new cxml.ParserConfig({ parseUnknown: true });
 
-		this.parserConfig = config;
+		this.xmlConfig.bindNamespace(cxml.anonymous);
+		this.xmlConfig.addNamespace(cxml.xml1998);
+
+		this.xmlBuilder = new cxml.Builder(this.xmlConfig, schema);
 	}
 
 	sendString(state: WxState, code: number, mimeType: string, body: string) {
@@ -204,8 +204,8 @@ export class WxHandler {
 					const stream = getRawBody(state.req);
 					if(!stream) throw(new WxError(415));
 
-					const parser = this.parserConfig.createParser();
-					wfsQueryBuilder.build(parser, (doc: any) => {
+					const parser = this.xmlConfig.createParser();
+					this.xmlBuilder.build(parser, 'http://www.opengis.net/wfs', (doc: any) => {
 						resolve(doc);
 					});
 
@@ -262,6 +262,7 @@ export class WxHandler {
 		}
 	};
 
-	parserConfig: cxml.ParserConfig;
+	xmlConfig: cxml.ParserConfig;
+	xmlBuilder: cxml.Builder;
 
 }
