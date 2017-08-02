@@ -13,4 +13,5 @@ export { WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeature';
 export { WmsGetCapabilities } from './wms/getCapabilities';
 export { WmsGetMap } from './wms/getMap';
 
+export { BBox } from './types/BBox';
 export { SRS } from './types/SRS';

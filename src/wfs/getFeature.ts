@@ -8,11 +8,10 @@ import { safeParameter } from '../parseQuery';
 import { WxState } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
 import { SRS } from '../types/SRS';
+import { BBox } from '../types/BBox';
 import { RExp } from '../types/RExp';
 
 import schema = require('../../schema.json');
-
-export type BBox = [ number, number, number, number, number ];
 
 export interface WfsGetFeatureSpec {
 	query: any;

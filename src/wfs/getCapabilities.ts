@@ -5,6 +5,7 @@ import * as Promise from 'bluebird';
 
 import { WxState } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
+import { BBox } from '../types/BBox';
 
 export interface WfsLayer {
 	name: string;
@@ -21,7 +22,7 @@ export interface WfsGetCapabilities {
 	title?: string;
 	endpoint?: string;
 	srs?: string;
-	bbox4326?: { n: number, e: number, s: number, w: number },
+	bbox4326?: BBox,
 	namespaces?: NamespaceRef[];
 	layers?: WfsLayer[];
 }
@@ -102,8 +103,8 @@ export function wfsGetCapabilities(state: WxState) {
 					), '</DefaultSRS>',
 					!bbox ? '' : [
 						'<ows:WGS84BoundingBox>',
-						'<ows:LowerCorner>' + bbox.w + ' ' + bbox.s + '</ows:LowerCorner>',
-						'<ows:UpperCorner>' + bbox.e + ' ' + bbox.n + '</ows:UpperCorner>',
+						'<ows:LowerCorner>' + bbox[0] + ' ' + bbox[1] + '</ows:LowerCorner>',
+						'<ows:UpperCorner>' + bbox[2] + ' ' + bbox[3] + '</ows:UpperCorner>',
 						'</ows:WGS84BoundingBox>'
 					].join(''),
 					'</FeatureType>'
