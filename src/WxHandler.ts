@@ -46,15 +46,17 @@ export interface WxHandlerOptions {
 }
 
 export interface WxState {
+	authorization?: any;
+	endpoint?: string;
 	req: http.IncomingMessage;
 	res: http.ServerResponse;
-	options: WxHandlerOptions;
 	handler: WxHandler;
+	options: WxHandlerOptions;
 	paramStart?: number;
 	paramTbl?: { [key: string]: string };
+	path?: string;
 	request?: string;
 	service?: string;
-	authorization?: any;
 	xml?: any;
 }
 
@@ -148,12 +150,19 @@ export class WxHandler {
 		state.paramStart = paramStart;
 		state.paramTbl = paramTbl;
 
-		const endpointStart = reqUrl.lastIndexOf('/', paramStart) + 1;
+		const endpointStart = reqUrl.lastIndexOf('/', paramStart);
+
+		if(endpointStart < 0) {
+			throw(new WxError(404));
+		}
 
 		// SECURITY: Strip evil characters to avoid injection attacks.
 		const endpoint = decodeURIComponent(
-			reqUrl.substr(endpointStart, paramStart - endpointStart)
+			reqUrl.substr(endpointStart + 1, paramStart - endpointStart - 1)
 		).replace(/[^A-Za-z]/g, '?');
+
+		state.endpoint = endpoint;
+		state.path = reqUrl.substr(0, endpointStart);
 
 		// TODO: Maybe check the endpoint.
 
