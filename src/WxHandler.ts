@@ -67,7 +67,7 @@ export class WxHandler {
 		this.xmlConfig = new cxml.ParserConfig({ parseUnknown: true });
 
 		this.xmlConfig.bindNamespace(cxml.anonymous);
-		this.xmlConfig.addNamespace(cxml.xml1998);
+		this.xmlConfig.bindNamespace(cxml.xml1998);
 
 		this.xmlBuilder = new cxml.Builder(this.xmlConfig, schema);
 	}
