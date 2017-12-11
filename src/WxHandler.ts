@@ -35,8 +35,8 @@ export interface WxHandlerOptions {
 	wfs?: {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
 		getCapabilities?: (state: WxState) => WfsGetCapabilities | null,
-		describeFeatureType?: (state: WxState, typeName: string) => WfsDescribeFeatureType | null,
-		getFeature?: (state: WxState, spec: WfsGetFeatureSpec) => WfsGetFeature
+		describeFeatureType?: (state: WxState, typeName: string) => WfsDescribeFeatureType | null | Promise<WfsDescribeFeatureType | null>,
+		getFeature?: (state: WxState, spec: WfsGetFeatureSpec) => WfsGetFeature | Promise<WfsGetFeature>
 	};
 	wms?: {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
