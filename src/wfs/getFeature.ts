@@ -7,9 +7,7 @@ import * as cxml from 'cxml';
 import { safeParameter } from '../parseQuery';
 import { WxState } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
-import { SRS } from '../types/SRS';
-import { BBox } from '../types/BBox';
-import { RExp } from '../types/RExp';
+import { BBox, SRS } from 'charto-types';
 
 import schema = require('../../schema.json');
 
@@ -143,11 +141,7 @@ export function wfsGetFeature(state: WxState) {
 						throw(new WxError(WxErrorCode.invalidParameter, 'srsName', envelope.srsName));
 					}
 
-					if(srs.oldXY) {
-						bbox = [ +sw[0], +sw[1], +ne[0], +ne[1], srs.epsg ];
-					} else {
-						bbox = [ +sw[1], +sw[0], +ne[1], +ne[0], srs.epsg ];
-					}
+					bbox = BBox.fromArray([ +sw[0], +sw[1], +ne[0], +ne[1] ], srs);
 				}
 			}
 

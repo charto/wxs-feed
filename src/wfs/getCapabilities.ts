@@ -5,7 +5,7 @@ import * as Promise from 'bluebird';
 
 import { WxState } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
-import { BBox } from '../types/BBox';
+import { BBox } from 'charto-types';
 
 export interface WfsLayer {
 	name: string;
@@ -44,7 +44,13 @@ export function wfsGetCapabilities(state: WxState) {
 
 		if(!endpoint) {
 			endpoint = [
-				state.req.headers['X-Forwarded-Protocol'] || 'http',
+				(
+					state.req.headers['X-Forwarded-Protocol'] ||
+					state.req.headers['x-forwarded-protocol'] ||
+					state.req.headers['X-Forwarded-Proto'] ||
+					state.req.headers['x-forwarded-proto'] ||
+					'http'
+				),
 				'://',
 				state.req.headers.host,
 				state.req.url!.substr(0, state.paramStart)
@@ -103,8 +109,8 @@ export function wfsGetCapabilities(state: WxState) {
 					), '</DefaultSRS>',
 					!bbox ? '' : [
 						'<ows:WGS84BoundingBox>',
-						'<ows:LowerCorner>' + bbox[0] + ' ' + bbox[1] + '</ows:LowerCorner>',
-						'<ows:UpperCorner>' + bbox[2] + ' ' + bbox[3] + '</ows:UpperCorner>',
+						'<ows:LowerCorner>' + bbox.w + ' ' + bbox.s + '</ows:LowerCorner>',
+						'<ows:UpperCorner>' + bbox.e + ' ' + bbox.n + '</ows:UpperCorner>',
 						'</ows:WGS84BoundingBox>'
 					].join(''),
 					'</FeatureType>'
