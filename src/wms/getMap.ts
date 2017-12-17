@@ -41,6 +41,8 @@ export function wmsGetMap(state: WxState) {
 			}
 		}
 
+		const srsName = paramTbl['crs'] || paramTbl['srs'];
+
 		const xml = state.xml || {
 			GetMap: {
 				StyledLayerDescriptor: {
@@ -54,7 +56,7 @@ export function wmsGetMap(state: WxState) {
 						{ X: parts[0], Y: parts[1] },
 						{ X: parts[2], Y: parts[3] }
 					],
-					srsName: parts[4] || 'EPSG:4326'
+					srsName: parts[4] || srsName || 'EPSG:4326'
 				},
 				Output: {
 					Format: paramTbl['format'],
@@ -67,6 +69,7 @@ export function wmsGetMap(state: WxState) {
 		};
 
 		const bboxSpec = xml.GetMap && xml.GetMap.BoundingBox;
+
 		let srs = SRS.parse(bboxSpec.srsName)!;
 
 		parts[0] = bboxSpec.coord[0].X;
@@ -81,7 +84,7 @@ export function wmsGetMap(state: WxState) {
 		const width = size.Width;
 		const height = size.Height;
 
-		srs = SRS.parse(paramTbl['srs'] || bboxSpec.srsName)!;
+		srs = SRS.parse(srsName || bboxSpec.srsName || 'EPSG:4326')!;
 
 		return(handler(state, { layer, srs, bbox, width, height }));
 	}).then((spec: WmsGetMap) => {

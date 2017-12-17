@@ -136,6 +136,7 @@ export class WxHandler {
 			// and dangerous characters from most parameters.
 			paramTbl = parseQuery(reqUrl, paramStart + 1, {
 				bbox: true,
+				crs: true,
 				filter: false,
 				format: true,
 				height: true,
