@@ -87,7 +87,7 @@ export function wfsDescribeFeatureType(state: WxState) {
 			'</xsd:schema>'
 		].join('');
 
-		state.handler.sendString(state, 200, 'text/xml; subtype=gml/3.1.1', output);
+		state.handler.send(state, 200, 'text/xml; subtype=gml/3.1.1', output);
 	});
 
 	return(handled);

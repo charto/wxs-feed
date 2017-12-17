@@ -72,17 +72,19 @@ export class WxHandler {
 		this.xmlBuilder = new cxml.Builder(this.xmlConfig, schema);
 	}
 
-	sendString(state: WxState, code: number, mimeType: string, body: string) {
-		const encoding = state.options.encoding || 'utf-8';
-		const data = new Buffer(body, encoding);
+	send(state: WxState, code: number, mimeType: string, body: string | Buffer) {
+		if(typeof(body) == 'string') {
+			const encoding = state.options.encoding || 'utf-8';
+			body = new Buffer(body, encoding);
+		}
 
 		state.res.writeHead(code, {
 			'Content-Type': mimeType,
-			'Content-Length': data.length,
+			'Content-Length': body.length,
 			'Cache-Control': 'private'
 		});
 
-		state.res.end(data);
+		state.res.end(body);
 	}
 
 	sendError(state: WxState, err: Error) {
@@ -93,7 +95,7 @@ export class WxHandler {
 		const locator = isObj && (err as WxError).locator;
 
 		if(code > WxErrorCode.max) {
-			this.sendString(state, code as number, 'text/plain', code + ' ' + text);
+			this.send(state, code as number, 'text/plain', code + ' ' + text);
 		} else {
 			const output = [
 				'<?xml version="1.0" encoding="UTF-8"?>',
@@ -112,7 +114,7 @@ export class WxHandler {
 				'</ows:ExceptionReport>'
 			].join('');
 
-			this.sendString(state, 200, 'application/xml', output);
+			this.send(state, 200, 'application/xml', output);
 		}
 	}
 

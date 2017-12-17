@@ -137,7 +137,7 @@ export function wfsGetCapabilities(state: WxState) {
 			'</WFS_Capabilities>'
 		].join('');
 
-		state.handler.sendString(state, 200, 'text/xml; subtype=gml/3.1.1', output);
+		state.handler.send(state, 200, 'text/xml; subtype=gml/3.1.1', output);
 	});
 
 	return(handled);

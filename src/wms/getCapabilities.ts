@@ -106,7 +106,7 @@ export function wmsGetCapabilities(state: WxState) {
 			'</WMT_MS_Capabilities>'
 		].join('');
 
-		state.handler.sendString(state, 200, 'text/xml', output);
+		state.handler.send(state, 200, 'text/xml', output);
 	});
 
 	return(handled);
