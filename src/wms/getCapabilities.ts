@@ -22,6 +22,7 @@ export interface WmsGetCapabilities {
 	title?: string;
 	endpoint?: string;
 	srs?: SrsSpec[];
+	formats?: { [operation: string]: string[] };
 	layers?: WmsLayer[];
 }
 
@@ -47,12 +48,13 @@ export function wmsGetCapabilities(state: WxState) {
 
 		const output = [
 			'<?xml version="1.0" encoding="UTF-8"?>',
-			'<!DOCTYPE WMT_MS_Capabilities SYSTEM "http://schemas.opengis.net/wms/1.1.1/capabilities_1_1_1.dtd">',
-			'<WMT_MS_Capabilities',
+			'<WMS_Capabilities',
+			' xmlns="http://www.opengis.net/wms"',
 			' xmlns:xlink="http://www.w3.org/1999/xlink"',
-			' version="1.1.1"',
+			' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+			' xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd"'+
+			' version="1.3.0"',
 			'>',
-
 			'<Service>',
 			!spec.name ? '' : '<Name>' + spec.name + '</Name>',
 			!spec.title ? '' : '<Title>' + spec.title + '</Title>',
@@ -66,6 +68,7 @@ export function wmsGetCapabilities(state: WxState) {
 					operation.charAt(0).toLowerCase() + operation.substr(1)
 				] ? '' : [
 					'<' + operation + '>',
+					((spec.formats || {})[operation] || []).map((mime: string) => '<Format>' + mime + '</Format>'),
 					'<DCPType><HTTP>',
 					'<Get>',
 					'<OnlineResource xlink:type="simple" xlink:href="' + endpoint + '"/>',
@@ -79,7 +82,7 @@ export function wmsGetCapabilities(state: WxState) {
 			'<Layer>',
 			!spec.title ? '' : '<Title>' + spec.title + '</Title>',
 			!spec.srs ? '' : spec.srs.map(
-				(srs: SrsSpec) => '<SRS>' + srs.name + '</SRS>'
+				(srs: SrsSpec) => '<CRS>' + srs.name + '</CRS>'
 			).join(''),
 			!spec.layers ? '' : spec.layers.map(
 				(layer: WmsLayer) => [
@@ -88,8 +91,9 @@ export function wmsGetCapabilities(state: WxState) {
 					'<Title>', layer.title || layer.name, '</Title>',
 					!spec.srs ? '' : spec.srs.map(
 						(srs: SrsSpec) => !srs.bbox ? '' : [
+							'<CRS>' + srs.name + '</CRS>',
 							'<BoundingBox',
-							' SRS="', srs.name, '"',
+							' CRS="', srs.name, '"',
 							' minx="', srs.bbox.w, '"',
 							' miny="', srs.bbox.s, '"',
 							' maxx="', srs.bbox.e, '"',
@@ -103,7 +107,7 @@ export function wmsGetCapabilities(state: WxState) {
 			'</Layer>',
 
 			'</Capability>',
-			'</WMT_MS_Capabilities>'
+			'</WMS_Capabilities>'
 		].join('');
 
 		state.handler.send(state, 200, 'text/xml', output);
