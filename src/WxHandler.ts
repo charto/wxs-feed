@@ -12,7 +12,7 @@ import { wfsGetCapabilities, WfsGetCapabilities } from './wfs/getCapabilities';
 import { wfsGetFeature, WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeature';
 
 import { wmsGetCapabilities, WmsGetCapabilities } from './wms/getCapabilities';
-import { wmsGetMap, WmsGetMap } from './wms/getMap';
+import { wmsGetMap, WmsGetMapSpec, WmsGetMap } from './wms/getMap';
 
 import { parseQuery, getRawBody } from './parseQuery';
 import { WxError, WxErrorCode } from './WxError';
@@ -41,7 +41,7 @@ export interface WxHandlerOptions {
 	wms?: {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
 		getCapabilities?: (state: WxState) => WmsGetCapabilities,
-		getMap?: (state: WxState) => WmsGetMap
+		getMap?: (state: WxState, spec: WmsGetMapSpec) => WmsGetMap | Promise<WmsGetMap>
 	};
 }
 
@@ -137,12 +137,19 @@ export class WxHandler {
 			paramTbl = parseQuery(reqUrl, paramStart + 1, {
 				bbox: true,
 				filter: false,
+				format: true,
+				height: true,
+				layers: true,
 				maxfeatures: true,
 				outputformat: true,
 				request: true,
 				service: true,
+				srs: true,
 				srsname: true,
-				typename: true
+				styles: true,
+				typename: true,
+				version: true,
+				width: true
 			});
 		} else {
 			paramStart = reqUrl.length;
@@ -269,7 +276,8 @@ export class WxHandler {
 			getfeature: wfsGetFeature
 		},
 		wms: {
-			getcapabilities: wmsGetCapabilities
+			getcapabilities: wmsGetCapabilities,
+			getmap: wmsGetMap
 		}
 	};
 

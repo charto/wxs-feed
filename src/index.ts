@@ -11,4 +11,4 @@ export { WfsDescribeFeatureType } from './wfs/describeFeatureType';
 export { WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeature';
 
 export { WmsGetCapabilities } from './wms/getCapabilities';
-export { WmsGetMap } from './wms/getMap';
+export { WmsGetMapSpec, WmsGetMap } from './wms/getMap';
