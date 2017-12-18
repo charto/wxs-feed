@@ -3,7 +3,7 @@
 
 import * as Promise from 'bluebird';
 
-import { WxState } from '../WxHandler';
+import { WxState, guessEndpoint } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
 
 export interface WmsLayer {
@@ -38,12 +38,7 @@ export function wmsGetCapabilities(state: WxState) {
 		let endpoint = spec.endpoint;
 
 		if(!endpoint) {
-			endpoint = [
-				state.req.headers['X-Forwarded-Protocol'] || 'http',
-				'://',
-				state.req.headers.host,
-				state.req.url!.substr(0, state.paramStart)
-			].join('');
+			endpoint = guessEndpoint(state);
 		}
 
 		const output = [

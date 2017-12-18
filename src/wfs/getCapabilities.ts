@@ -3,7 +3,7 @@
 
 import * as Promise from 'bluebird';
 
-import { WxState } from '../WxHandler';
+import { WxState, guessEndpoint } from '../WxHandler';
 import { WxError, WxErrorCode } from '../WxError';
 import { BBox } from 'charto-types';
 
@@ -43,18 +43,7 @@ export function wfsGetCapabilities(state: WxState) {
 		const bbox = spec.bbox4326;
 
 		if(!endpoint) {
-			endpoint = [
-				(
-					state.req.headers['X-Forwarded-Protocol'] ||
-					state.req.headers['x-forwarded-protocol'] ||
-					state.req.headers['X-Forwarded-Proto'] ||
-					state.req.headers['x-forwarded-proto'] ||
-					'http'
-				),
-				'://',
-				state.req.headers.host,
-				state.req.url!.substr(0, state.paramStart)
-			].join('');
+			endpoint = guessEndpoint(state);
 		}
 
 		const output = [
