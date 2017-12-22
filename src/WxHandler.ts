@@ -14,6 +14,9 @@ import { wfsGetFeature, WfsGetFeatureSpec, WfsGetFeature } from './wfs/getFeatur
 import { wmsGetCapabilities, WmsGetCapabilities } from './wms/getCapabilities';
 import { wmsGetMap, WmsGetMapSpec, WmsGetMap } from './wms/getMap';
 
+import { wmtsGetCapabilities, WmtsGetCapabilities } from './wmts/getCapabilities';
+import { wmtsGetTile, WmtsGetTileSpec} from './wmts/getTile';
+
 import { parseQuery, getRawBody } from './parseQuery';
 import { WxError, WxErrorCode } from './WxError';
 
@@ -42,6 +45,10 @@ export interface WxHandlerOptions {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
 		getCapabilities?: (state: WxState) => WmsGetCapabilities,
 		getMap?: (state: WxState, spec: WmsGetMapSpec) => WmsGetMap | Promise<WmsGetMap>
+	};
+	wmts?: {
+		getCapabilities?: (state: WxState) => WmtsGetCapabilities | string,
+		getTile?: (state: WxState, spec: WmtsGetTileSpec) => any | Promise<any>
 	};
 }
 
@@ -155,6 +162,7 @@ export class WxHandler {
 				filter: false,
 				format: true,
 				height: true,
+				layer: true,
 				layers: true,
 				maxfeatures: true,
 				outputformat: true,
@@ -162,7 +170,12 @@ export class WxHandler {
 				service: true,
 				srs: true,
 				srsname: true,
+				style: true,
 				styles: true,
+				tilecol: true,
+				tilematrix: true,
+				tilematrixset: true,
+				tilerow: true,
 				typename: true,
 				version: true,
 				width: true
@@ -294,6 +307,10 @@ export class WxHandler {
 		wms: {
 			getcapabilities: wmsGetCapabilities,
 			getmap: wmsGetMap
+		},
+		wmts: {
+			getcapabilities: wmtsGetCapabilities,
+			gettile: wmtsGetTile
 		}
 	};
 
