@@ -94,17 +94,25 @@ export class WxHandler {
 		this.xmlBuilder = new cxml.Builder(this.xmlConfig, schema);
 	}
 
-	send(state: WxState, code: number, mimeType: string, body: string | Buffer) {
+	send(state: WxState, code: number, mimeType: string, body: string | Buffer, extraHeaders?: any) {
 		if(typeof(body) == 'string') {
 			const encoding = state.options.encoding || 'utf-8';
 			body = new Buffer(body, encoding);
 		}
 
-		state.res.writeHead(code, {
+		const headers: any = {
 			'Content-Type': mimeType,
 			'Content-Length': body.length,
 			'Cache-Control': 'private'
-		});
+		};
+
+		if(extraHeaders) {
+			for(let key of Object.keys(extraHeaders)) {
+				headers[key] = extraHeaders[key];
+			}
+		}
+
+		state.res.writeHead(code, headers);
 
 		state.res.end(body);
 	}
@@ -117,7 +125,13 @@ export class WxHandler {
 		const locator = isObj && (err as WxError).locator;
 
 		if(code > WxErrorCode.max) {
-			this.send(state, code as number, 'text/plain', code + ' ' + text);
+			const extraHeaders: any = {};
+
+			if(code == 401) {
+				extraHeaders['WWW-Authenticate'] = 'Basic realm="Login"';
+			}
+
+			this.send(state, code as number, 'text/plain', code + ' ' + text, extraHeaders);
 		} else {
 			const output = [
 				'<?xml version="1.0" encoding="UTF-8"?>',
@@ -241,12 +255,12 @@ export class WxHandler {
 		const authorized = !options.authorizeUser || options.authorizeUser(state);
 
 		const bodyParsed = Promise.resolve(authorized).then<any>((auth: any) => {
-			// SECURITY: Only parse authorized POST requests.
-			if(!auth) throw(new WxError(403));
-
 			state.authorization = auth;
 
 			if(state.req.method == 'POST') {
+				// SECURITY: Only parse authorized POST requests.
+				if(!state.authorization) throw(new WxError(401));
+
 				return(new Promise((resolve, reject) => {
 					const stream = getRawBody(state.req);
 					if(!stream) throw(new WxError(415));
