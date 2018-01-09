@@ -35,6 +35,7 @@ export interface WxHandlerOptions {
 	/** Maximum allowed maxFeatures parameter. */
 	maxFeatures?: number;
 	encoding?: string;
+	endpoints?: { [key: string]: boolean | ((req: http.IncomingMessage, res: http.ServerResponse) => void) };
 	wfs?: {
 		[ key: string ]: ((state: WxState, ...args: any[]) => any) | undefined,
 		getCapabilities?: (state: WxState) => WfsGetCapabilities | null,
@@ -167,7 +168,37 @@ export class WxHandler {
 		let paramTbl: { [ key: string ]: string } | undefined;
 
 		// Parse query string.
-		if(paramStart >= 0) {
+		if(paramStart < 0) {
+			paramStart = reqUrl.length;
+			paramTbl = {};
+		}
+
+		const endpointStart = reqUrl.lastIndexOf('/', paramStart);
+
+		if(endpointStart < 0) {
+			throw(new WxError(404));
+		}
+
+		// SECURITY: Strip evil characters to avoid injection attacks.
+		const endpoint = decodeURIComponent(
+			reqUrl.substr(endpointStart + 1, paramStart - endpointStart - 1)
+		).replace(/[^A-Za-z]/g, '?');
+
+		state.endpoint = endpoint;
+		state.path = reqUrl.substr(0, endpointStart);
+
+		// Check the endpoint.
+		if(state.options.endpoints) {
+			const customHandler = state.options.endpoints[endpoint];
+
+			if(!customHandler) {
+				throw(new WxError(404));
+			} else if(typeof(customHandler) == 'function') {
+				return(customHandler(state.req, state.res));
+			}
+		}
+
+		if(!paramTbl) {
 			// SECURITY: drop unknown parameters,
 			// and dangerous characters from most parameters.
 			paramTbl = parseQuery(reqUrl, paramStart + 1, {
@@ -194,29 +225,10 @@ export class WxHandler {
 				version: true,
 				width: true
 			});
-		} else {
-			paramStart = reqUrl.length;
-			paramTbl = {};
 		}
 
 		state.paramStart = paramStart;
 		state.paramTbl = paramTbl;
-
-		const endpointStart = reqUrl.lastIndexOf('/', paramStart);
-
-		if(endpointStart < 0) {
-			throw(new WxError(404));
-		}
-
-		// SECURITY: Strip evil characters to avoid injection attacks.
-		const endpoint = decodeURIComponent(
-			reqUrl.substr(endpointStart + 1, paramStart - endpointStart - 1)
-		).replace(/[^A-Za-z]/g, '?');
-
-		state.endpoint = endpoint;
-		state.path = reqUrl.substr(0, endpointStart);
-
-		// TODO: Maybe check the endpoint.
 
 		// SECURITY: Validate service.
 		const service = (paramTbl['service'] || endpoint).toLowerCase();
