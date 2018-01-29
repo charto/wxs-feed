@@ -88,10 +88,6 @@ export class WxHandler {
 	constructor(public options: WxHandlerOptions) {
 		// TODO: remove the parseUnknown flag after integrating cxsd.
 		this.xmlConfig = new cxml.ParserConfig({ parseUnknown: true });
-
-		this.xmlConfig.bindNamespace(cxml.anonymous);
-		this.xmlConfig.bindNamespace(cxml.xml1998);
-
 		this.xmlBuilder = new cxml.Builder(this.xmlConfig, schema);
 	}
 
