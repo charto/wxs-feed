@@ -110,8 +110,8 @@ export function wfsGetFeature(state: WxState) {
 			let bbox: BBox | null;
 			let filter = query.Filter;
 			let envelope = filter && (
-				(filter.BBOX && filter.BBOX.Envelope) ||
-				(filter.Intersects && filter.Intersects.Envelope)
+				(filter.BBOX && filter.BBOX.Envelope && (!filter.BBOX.Envelope._ || filter.BBOX.Envelope._.exists) && filter.BBOX.Envelope) ||
+				(filter.Intersects && filter.Intersects.Envelope && (!filter.Intersects.Envelope._ || filter.Intersects.Envelope._.exists) && filter.Intersects.Envelope)
 			);
 
 			bbox = null;
@@ -124,14 +124,14 @@ export function wfsGetFeature(state: WxState) {
 				if(sw && ne) {
 					// TODO: remove the array tweak after integrating cxsd.
 
-					if(typeof(sw) == 'string') {
-						sw = sw.split(' ');
+					if(sw.$) {
+						sw = sw.$.split(' ');
 					} else if(!(sw instanceof Array)) {
 						sw = null;
 					}
 
-					if(typeof(ne) == 'string') {
-						ne = ne.split(' ');
+					if(ne.$) {
+						ne = ne.$.split(' ');
 					} else if(!(ne instanceof Array)) {
 						ne = null;
 					}

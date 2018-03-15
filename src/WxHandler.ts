@@ -274,7 +274,7 @@ export class WxHandler {
 					if(!stream) throw(new WxError(415));
 
 					const parser = this.xmlConfig.createParser();
-					this.xmlBuilder.build(parser, 'http://www.opengis.net/wfs', (doc: any) => {
+					this.xmlBuilder.build(parser, 'http://www.opengis.net/wfs', (err: any, doc: any) => {
 						resolve(doc);
 					});
 
@@ -291,8 +291,11 @@ export class WxHandler {
 				}
 
 				// SECURITY: Validate request type.
-				request = keys[0].toLowerCase();
-				handler = handlerTbl[request];
+				for(let key of keys) {
+					request = key.toLowerCase();
+					handler = handlerTbl[request];
+					if(handler) break;
+				}
 
 				if(!handler) {
 					throw(new WxError(WxErrorCode.invalidParameter, 'request', request));
