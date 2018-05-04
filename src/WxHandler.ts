@@ -278,7 +278,27 @@ export class WxHandler {
 						resolve(doc);
 					});
 
-					stream.pipe(parser);
+					stream.on('data', (chunk) => {
+						try {
+							parser.write(chunk);
+						} catch(err) {
+							reject(err);
+							parser.end();
+						}
+					});
+
+					stream.on('error', (err) => {
+						reject(err);
+						parser.end();
+					});
+
+					stream.on('end', (chunk) => {
+						try {
+							parser.end(chunk);
+						} catch(err) {
+							reject(err);
+						}
+					});
 				}));
 			} else return(null);
 		});
